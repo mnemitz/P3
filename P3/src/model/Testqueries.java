@@ -50,7 +50,7 @@ public class Testqueries{
        	//displayShows(rs);
     	closeConnection();
     }
-    
+
     public static void openConnection()throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException 
     {
     	// Register the driver.  
@@ -287,7 +287,7 @@ public class Testqueries{
         }
         i = 1;
     }
-    public static void displayShowsAtVenue(ResultSet x) throws SQLException{
+    public void displayShowsAtVenue(ResultSet x) throws SQLException{
         while ( x.next() ) {
     //    	System.out.println("STARTED GETTING SHOWS");
         	Boolean p = x.getBoolean("public");
@@ -304,5 +304,72 @@ public class Testqueries{
         }
         i = 1;
     }
-    
+
+    public void loginPage(String email, String passwd) throws SQLException {
+        try {
+            Statement stmnt = conn.createStatement();
+            rs = stmnt.executeQuery("SELECT * FROM user WHERE email = " + email);
+        }catch(SQLException e) {System.err.println("Error occured while scanning users");}
+
+            if (!rs.next()){
+                System.out.println("Email does not exist in the system");
+            }
+            else if (passwd == rs.getString("password")){
+                crntUser.setUser(rs.getString("email"));  //NEED TO CREATE USER CLASS
+                System.out.println("You've successfully logged in as " + rs.getString("name"));
+            }
+            else {
+                System.out.println("Password does not match user name");
+            }
+
+
+    }
+
+    public void addBandPage(String N, String C, String E, String B, String G, String W) throws SQLException {
+        Statement stmnt = conn.createStatement();
+        rs = stmnt.executeQuery( "SELECT MAX(bandid) FROM band");//get most current band id
+        int newId = rs.getInt("bandid") + 1;
+        if (crntUser.getId() == null){
+            System.out.println("Must log in to add band");
+        }
+        else { // There is a user logged in
+            try {
+                stmnt = conn.createStatement();
+                rs = stmnt.executeQuery("SELECT * FROM bands WHERE name = " + N + " AND city = " + C);
+            }catch(SQLException e) {System.err.println("Error Occured While Scanning through bands");}
+            if (!rs.next()){
+                addBand(newId, N, C, E, B, G , W);
+            }
+            else {
+                System.out.println("Are any of these bands yours?");
+                System.out.println();
+                displayBands(rs);
+                System.out.println();
+                System.out.println("newId, N, C, E, B, G , W, Call registerExistingBand(<index number>, <'y' or 'n'>)");
+                //obviously this prompt will be implemented according to java effects
+                //I figure that calling methods would translate more directly than reading from scanner
+                }
+            }
+        }
+    public void registerExistingBand(int I, String N, String C, String E, String B, String G, String W, int IDslot, String yesno ) throws SQLException {
+        if (yesno = 'n') {
+            addBand(I, N, C, E, B, G , W);
+        }
+        else if (yesno = 'y') {
+            System.out.println("Linking your account");
+            crntBand.setBand(bandIds.get(IDslot-1));
+            stmnt.executeQuery("INSERT INTO bmanages (bandId, userId, sincedate) VALUES (" + crntBand.getId() + ", " + crntUser.getId() + "NOW())");
+        }
+    }
+    public void addBand(int I, String N, String C, String E, String B, String G, String W){
+        try {// there are no bands that match that name and city
+            Statement stmnt = conn.createStatement();
+            stmnt.executeQuery("INSERT INTO bands (bandid, name, city, email, bio, genre, weblink) VALUES (" + I + ", " +
+                    N + ", " + C + ", " + E + ", " + B + ", " + G + ", " + W + ")"); //insert new band into band table
+            stmnt.executeQuery("INSERT INTO bmanages (bandId, userId, sincedate) VALUES (" + I + ", " + crntUser.getId() + "NOW())");
+        }catch(SQLException e) {System.err.println("Error Occured While Inputing New Band");}
+        System.out.println( N + " has been added to the database");
+    }
 }
+
+
