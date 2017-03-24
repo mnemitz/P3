@@ -17,7 +17,7 @@ public class ShowController {
         //TODO create a show and add it to the database
     }
 
-    public void deleteShow() {
+    public void deleteShow(int id) {
         //TODO remove a show from database
     }
 
