@@ -29,13 +29,4 @@ public class Main extends Application {
 		}
 
 	}
-
 }
-	
-/*	public static void main(String[] args)
-	{
-		// launch the application, give it casted args to make the angry java monster happy
-		Application.launch(Main.class, (java.lang.String[])null);
-		DatabaseConnector connector = new DatabaseConnector();
-	}
-}*/

@@ -14,7 +14,17 @@ public class Band
 	static String bio;
 	static String weblink;
 	static String email;
-	
+
+	public Band(int id, String name, String city, String genre, String bio, String weblink, String email) {
+		this.id = id;
+		this.name = name;
+		this.city = city;
+		this.genre = genre;
+		this.bio = bio;
+		this.weblink = weblink;
+		this.email = email;
+	}
+
 	public void setBand(int x) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
 		//System.out.println("... fetching band ...");
 		try {

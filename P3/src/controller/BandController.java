@@ -2,6 +2,10 @@ package controller;
 
 import model.Band;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -31,6 +35,35 @@ public class BandController {
 
     public void modifyBand(int id) {
         //TODO modify the band with the corresponding id and update the database
+    }
+
+    public Band getBand(int id) throws Exception {
+        //System.out.println("... fetching band ...");
+        try {
+            //	System.out.println("Registering Driver");
+            DriverManager.registerDriver ( new org.postgresql.Driver() ) ;
+            //    System.out.println("Successful Registration");
+        }
+        catch (Exception cnfe){
+            System.out.println("Class not found");
+        }
+
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://comp421.cs.mcgill.ca:5432/cs421","cs421g36", "LookVibrant");
+
+        Statement stmnt = conn.createStatement();
+        ResultSet bandattributes = stmnt.executeQuery("SELECT * FROM Band WHERE bandid = "+ id);
+        bandattributes.next();
+
+        name = bandattributes.getString("name");
+        city = bandattributes.getString("city");
+        genre = bandattributes.getString("genre");
+        bio = bandattributes.getString("bio");
+        weblink = bandattributes.getString("weblink");
+        email = bandattributes.getString("email");
+
+        conn.close();
+
+        return new Band(id, name, city, genre, bio, weblink, email);
     }
 
     public List<Band> searchBandsByName(String query) {
