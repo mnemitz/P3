@@ -16,6 +16,7 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+
 		try {
 			theStage = primaryStage;
 			rootPane = (TabPane) FXMLLoader.load(Main.class.getResource("CHMainView.fxml"));

@@ -20,7 +20,7 @@ public class Testqueries{
     static Band crntBand = new Band();
     static Show crntShow = new Show();
     static Venue crntVenue = new Venue();
-    static User crntUser = new User();
+    //static User crntUser = new User();
     static int i = 1;
     
     static Scanner scanner = new Scanner(System. in); 
@@ -291,7 +291,7 @@ public class Testqueries{
 
     public static void displayShowsAtVenue(ResultSet x) throws SQLException{
         while ( x.next() ) {
-    //    	System.out.println("STARTED GETTING SHOWS");
+
         	Boolean p = x.getBoolean("public");
         	if (p) {
         		showIds.add((Integer) x.getInt("showid"));

@@ -15,6 +15,10 @@ public class Band
 	static String weblink;
 	static String email;
 
+	public Band() {
+
+	}
+
 	public Band(int id, String name, String city, String genre, String bio, String weblink, String email) {
 		this.id = id;
 		this.name = name;
