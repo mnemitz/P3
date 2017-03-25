@@ -20,6 +20,7 @@ public class Testqueries{
     static Band crntBand = new Band();
     static Show crntShow = new Show();
     static Venue crntVenue = new Venue();
+    static User crntUser = new User();
     static int i = 1;
     
     static Scanner scanner = new Scanner(System. in); 
@@ -287,6 +288,7 @@ public class Testqueries{
         }
         i = 1;
     }
+
     public static void displayShowsAtVenue(ResultSet x) throws SQLException{
         while ( x.next() ) {
     //    	System.out.println("STARTED GETTING SHOWS");
@@ -321,8 +323,6 @@ public class Testqueries{
 //            else {
 //                System.out.println("Password does not match user name");
 //            }
-//
-//
 //    }
 //
 //    public void addBandPage(String N, String C, String E, String B, String G, String W) throws SQLException {
@@ -358,6 +358,7 @@ public class Testqueries{
 //        else if (yesno = 'y') {
 //            System.out.println("Linking your account");
 //            crntBand.setBand(bandIds.get(IDslot-1));
+//            Statement stmnt = conn.createStatement();
 //            stmnt.executeQuery("INSERT INTO bmanages (bandId, userId, sincedate) VALUES (" + crntBand.getId() + ", " + crntUser.getId() + "NOW())");
 //        }
 //    }
