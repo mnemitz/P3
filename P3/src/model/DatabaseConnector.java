@@ -239,4 +239,21 @@ public class DatabaseConnector
 		}
 		closeThisConnection();
 	}
+
+	public void addBand(Band toAdd)
+	{
+		openThisConnection();
+		//The following query will insert a new enrty into the band table, and also update the bmanages table
+		// TODO make query
+		try{
+			Statement s = CONNECTION.createStatement();
+
+		}
+		catch(SQLException e)
+		{
+			e.printStackTrace();
+			closeThisConnection();
+		}
+		closeThisConnection();
+	}
 }
