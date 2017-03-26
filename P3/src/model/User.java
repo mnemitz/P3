@@ -26,4 +26,5 @@ public class User
     {
         return password.equals(pass);
     }
+
 }

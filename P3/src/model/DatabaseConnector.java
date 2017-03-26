@@ -41,6 +41,9 @@ public class DatabaseConnector
 	private static DatabaseConnector instance = null;
 	private static String CurrentUserEmail = null;
 	private static String CurrentUserName = null;
+
+
+
 	public static DatabaseConnector getInstance()
 	{
 		if(instance == null) {
@@ -220,5 +223,20 @@ public class DatabaseConnector
 		catch(SQLException e){closeThisConnection(); e.printStackTrace();}
 
 		return venuesFound;
+	}
+
+	public void addUser(User toAdd, String pwd) throws UserExistsException
+	{
+		openThisConnection();
+		try{
+			Statement s = CONNECTION.createStatement();
+			s.executeQuery("INSERT INTO usr (email, name, password) VALUES('" + toAdd.getName() + "', '" + toAdd.getEmail() + "', '" + pwd + "');");
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			throw new UserExistsException("user already exists");
+		}
+		closeThisConnection();
 	}
 }
