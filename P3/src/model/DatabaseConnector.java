@@ -1,99 +1,224 @@
 package model;
+import org.postgresql.util.PSQLException;
+
 import java.sql.*;
 import java.math.*;
 import java.util.*;
 
-import javafx.scene.*;
-
-/*
- * @TODO:
- * Figure out how the result set of a query can be put into the list view as cleanly as possible.
- * 
- * If searching for Bands, the list view should have a few descriptive columns for the band etc
- * 
- * It seems like we wil need to instantiate a Band object of some kind to keep track of the ID.
- * 
- * That way once the bands appear in the list view, we can assign an event handler to each list item which triggers the stacking of a new pane
- * This new pane needs the specific ID to know what methods to call to DBConnector before it shows itself
- * 
- * So bandSelect should return a Band[] which can subsequently be iterated over to populate the list items
- * 
- * Somehow the ID needs to be passed downward as well. 
- * 
- * OOO!
- * 
- * When iterating through the returned bands:
- * 	1:	Set the ListItem text to match the attributes
- * 	2:	Define the onClick() or whatever handler as an anonymous function based on thebandID of the current band
- * 		i.e. a function that says "open a new bandpage on the stack pane whose ID this this one", and let that pane talk to DBConnector to get what it needs
- * 
- * */
 
 
+/*Singleton implementation of DatabaseConnector
+*
+* The idea is this is the one class which executes queries. It has a connection to the database so we don't make many
+* */
 
 public class DatabaseConnector 
 {
-	
-	public enum BandCols
+	public enum BandCol
 	{
-		BAND_ID, 
-		BAND_NAME,
-		BAND_EMAIL,
-		BAND_CITY,
-		BAND_GENRE,
-		BAND_BIO,
-		BAND_WEBLINK
+		B_ID,
+		B_NAME,
+		B_EMAIL,
+		B_CITY,
+		B_GENRE,
+		B_BIO,
+		B_WEBLINK,
 	}
-	
-	public enum VenueCols
-	{
-		VENUE_ID,
-		VENUE_NAME,
-		VENUE_EMAIL,
-		VENUE_CITY,
-		VENUE_TYPE,
-		VENUE_DESCRIPTION,
-		VENUE_WEBLINK
-	}
-	
-	public enum ShowCols
-	{
-		// TODO columns for show
-	}
-	
 
-	
-	private static Connection CONNECTION = null;
-	private String URL = "jdbc:postgresql://comp421.cs.mcgill.ca";
-	
-	public DatabaseConnector()
+	public enum VenueCol
 	{
-		try
-		{
-			Class.forName("org.postgresql.Driver");
+		V_ID,
+		V_NAME,
+		V_EMAIL,
+		V_CITY,
+		V_TYPE,
+		V_WEBLINK,
+	}
+	private static Connection CONNECTION = null;
+	private static String URL = "jdbc:postgresql://comp421.cs.mcgill.ca:5432/cs421";
+	private static String dbUsr = "cs421g36";
+	private static String dbUsrPwd = "LookVibrant";
+	private static DatabaseConnector instance = null;
+	private static String CurrentUserEmail = null;
+	private static String CurrentUserName = null;
+	public static DatabaseConnector getInstance()
+	{
+		if(instance == null) {
+			instance = new DatabaseConnector();
 		}
-		catch(ClassNotFoundException e)
-		{
-			System.out.println("Could not locate driver class, make sure a driver is in the build path");
+		return instance;
+	}
+
+	// set the id of the user for this session
+	public void setSessionUserID(String usrID)
+	{
+		CurrentUserEmail = usrID;
+		openThisConnection();
+
+		try{
+			Statement s = CONNECTION.createStatement();
+			ResultSet rs = s.executeQuery("SELECT name FROM usr WHERE email = '" + CurrentUserEmail + "';");
+			while(rs.next())
+			{
+				CurrentUserName = rs.getString("name");
+			}
 		}
-		// From here we can assume the driver was successfully instantiated...
-		Properties props = new Properties();
-		props.put("user", "cs421g36");
-		props.put("password", "LookVibrant");
-		
-		try
-		{
-			CONNECTION = DriverManager.getConnection(URL, props);
-		}
-		catch(SQLException sqle)
-		{
-			System.out.println(sqle);
-		}
+		catch(SQLException e){}
+		closeThisConnection();
+	}
+
+	public String getCurrentUserName()
+	{
+		return CurrentUserName;
+	}
+	private DatabaseConnector()
+	{
+		openThisConnection();
+		closeThisConnection();
+	}
+
+	private static void openThisConnection()
+	{
+		// Register the driver.
+			try {
+				System.out.println("Registering Driver");
+				DriverManager.registerDriver(new org.postgresql.Driver());
+				System.out.println("Successful Registration");
+				CONNECTION = DriverManager.getConnection(URL, dbUsr, dbUsrPwd);
+			} catch (SQLException e) {
+				closeThisConnection();
+				System.out.println("entered this catch block");
+			}
+			System.out.println("connection opened!");
+	}
+
+	private static void closeThisConnection()
+	{
 		try {
 			CONNECTION.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}	
+		System.out.println("connection closed");
+	}
+	public ArrayList<Band> getBandsBy(BandCol col, String searchKey) throws NoResultException
+	{
+		openThisConnection();
+		ArrayList<Band> bandsFound = new ArrayList<Band>();
+		String query = null;
+		switch(col)
+		{
+			case B_ID: 		query = "SELECT * FROM band WHERE ID = " + searchKey + ";"; break;
+			case B_NAME: 	query = "SELECT * FROM band WHERE name LIKE "+ "'%" + searchKey + "%';";	break;
+			case B_EMAIL:	query = "SELECT * FROM band WHERE email = " + searchKey; break;
+			case B_CITY:	query = "SELECT * FROM band WHERE city = " + "'" + searchKey + "';"; break;
+			case B_GENRE:	query = "SELECT * FROM band WHERE genre LIKE " + "'" + searchKey + "';"; break;
+			default:		System.out.println("Please select a valid search parameter. Returning null now.");
+		}
+		if (query == null)
+		{
+			return null;
+		}
+		System.out.println("Excecuting query: " + query);
+		ResultSet rs;
+		try {
+			Statement s = CONNECTION.createStatement();
+			rs = s.executeQuery(query);
+			while(rs.next())
+			{
+				int curr_bandID = rs.getInt("bandid");
+				String curr_name = rs.getString("name");
+				String curr_city = rs.getString("city");
+				String curr_weblink = rs.getString("weblink");
+				String curr_email = rs.getString("email");
+				String curr_description = rs.getString("bio");
+				String curr_genre = rs.getString("genre");
+
+				//make a new band from the attributes in found this row
+				Band currBand = new Band(curr_bandID, curr_name, curr_city, curr_genre, curr_description, curr_weblink, curr_email);
+				// ... and add it to the return list
+				bandsFound.add(currBand);
+			}
+		}
+		catch(SQLException e){	closeThisConnection(); e.printStackTrace();}
+		closeThisConnection();
+		if(bandsFound.size() == 0)
+		{
+			throw new NoResultException("no results");
+		}
+		return bandsFound;
+	}
+
+	public User getUserByEmail(String email) throws NoResultException
+	{
+		User ret = null;
+		openThisConnection();
+		ResultSet rs;
+		try {
+			Statement stmt = CONNECTION.createStatement();
+			rs = stmt.executeQuery("SELECT * FROM usr WHERE email = '" + email + "';");
+			while(rs.next())
+			{
+				ret = new User(
+				rs.getString("email"), rs.getString("name"), rs.getString("password")
+				);
+			}
+		}
+		catch(SQLException sqle)
+		{
+			System.out.println("Error finding user with email:\t" + email);
+			return null;
+		}
+		closeThisConnection();
+		if(ret == null)
+		{
+			throw new NoResultException("no user found by email:\t" + email);
+		}
+		else
+		{
+			return ret;
+		}
+	}
+
+	public ArrayList<Venue> getVenuesBy(VenueCol col, String searchKey)
+	{
+		ArrayList<Venue> venuesFound = new ArrayList<Venue>();
+		String query = null;
+		switch(col)
+		{
+			case V_ID: 		query = "SELECT * FROM venue WHERE ID = " + searchKey; break;
+			case V_NAME: 	query = "SELECT * FROM venue WHERE name LIKE " + searchKey; break;
+			case V_EMAIL:	query = "SELECT * FROM venue WHERE email = " + searchKey; break;
+			case V_CITY:	query = "SELECT * FROM venue WHERE city = " + searchKey; break;
+			case V_TYPE:	query = "SELECT * FROM venue WHERE type LIKE " + searchKey; break;
+			default:		System.out.println("Please select a valid search parameter. Returning null now.");
+		}
+		if (query == null)
+		{
+			return null;
+		}
+		ResultSet rs;
+		try {
+			Statement s = CONNECTION.createStatement();
+			rs = s.executeQuery(query);
+			while(rs.next())
+			{
+				int curr_venueID = rs.getInt("venueid");
+				String curr_name = rs.getString("name");
+				String curr_city = rs.getString("city");
+				String curr_weblink = rs.getString("weblink");
+				String curr_email = rs.getString("email");
+				String curr_description = rs.getString("description");
+				String curr_type = rs.getString("type");
+				String curr_addr = rs.getString("address");
+				//make a new band from the attributes in found this row
+				Venue currVenue = new Venue(curr_venueID, curr_name, curr_city, curr_type, curr_description, curr_weblink, curr_email, curr_addr);
+				// ... and add it to the return list
+				venuesFound.add(currVenue);
+			}
+		}
+		catch(SQLException e){closeThisConnection(); e.printStackTrace();}
+
+		return venuesFound;
+	}
 }

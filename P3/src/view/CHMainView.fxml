@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.Tab?>
@@ -9,7 +11,7 @@
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<TabPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+<TabPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.FXMLController">
   <tabs>
     <Tab fx:id="searchTab" text="Search">
       <content>
@@ -19,29 +21,52 @@
                   <TextField fx:id="venueSearchBar" layoutX="27.0" layoutY="102.0" prefHeight="26.0" prefWidth="126.0" promptText="Search Venues" />
                   <SplitMenuButton fx:id="bandsBy" layoutX="153.0" layoutY="39.0" mnemonicParsing="false" text="By">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="Name" />
-                      <MenuItem mnemonicParsing="false" text="City" />
-                        <MenuItem mnemonicParsing="false" text="Genre" />
+                      <MenuItem fx:id="nameChoice" mnemonicParsing="false" onAction="#setNameBand" text="Name" />
+                      <MenuItem fx:id="locChoice" mnemonicParsing="false" onAction="#setLocationBand" text="Location" />
+                        <MenuItem fx:id="genreChoice" mnemonicParsing="false" onAction="#setGenreBand" text="Genre" />
                     </items>
                   </SplitMenuButton>
                   <SplitMenuButton fx:id="venuesBy" layoutX="153.0" layoutY="102.0" mnemonicParsing="false" text="By">
                      <items>
-                        <MenuItem mnemonicParsing="false" text="Name" />
-                        <MenuItem mnemonicParsing="false" text="City" />
-                        <MenuItem mnemonicParsing="false" text="Genre" />
+                        <MenuItem mnemonicParsing="false" onAction="#setNameVenue" text="Name" />
+                        <MenuItem mnemonicParsing="false" onAction="#setLocationVenue" text="Location" />
+                        <MenuItem mnemonicParsing="false" onAction="#setTypeVenue" text="Type" />
                      </items>
                   </SplitMenuButton>
-                  <TreeView fx:id="consoleTreeView" layoutX="331.0" layoutY="16.0" prefHeight="327.0" prefWidth="250.0" />
                   <Button layoutX="27.0" layoutY="171.0" mnemonicParsing="false" text="Search shows by band and/or venue" />
-                  <Button layoutX="251.0" layoutY="39.0" mnemonicParsing="false" text="Go!" />
+                  <Button fx:id="goBands" layoutX="251.0" layoutY="39.0" mnemonicParsing="false" onMouseClicked="#searchBands" text="Go!" />
                   <Button layoutX="251.0" layoutY="102.0" mnemonicParsing="false" text="Go!" />
+                  <TreeView fx:id="consoleTree" layoutX="306.0" layoutY="39.0" prefHeight="200.0" prefWidth="245.0" />
+                  <Label fx:id="welcomeLabelOne" layoutX="14.0" layoutY="14.0" text="Welcome, " />
+                  <Button fx:id="logOutButton" layoutX="27.0" layoutY="275.0" mnemonicParsing="false" onAction="#logOut" text="Log out" />
                </children></AnchorPane>
       </content>
     </Tab>
-    <Tab fx:id="modifyTab" text="Modify">
+    <Tab fx:id="modifyTab" text="My Bands and Venues">
       <content>
-        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <Label layoutX="14.0" layoutY="14.0" text="Welcome," />
+                  <TreeView layoutX="14.0" layoutY="86.0" prefHeight="200.0" prefWidth="149.0" />
+                  <Label layoutX="14.0" layoutY="60.0" text="My Bands" />
+                  <Button layoutX="138.0" layoutY="56.0" mnemonicParsing="false" text="+" />
+                  <Label layoutX="241.0" layoutY="60.0" text="My Venues" />
+                  <TreeView layoutX="241.0" layoutY="86.0" prefHeight="200.0" prefWidth="154.0" />
+                  <Button layoutX="370.0" layoutY="56.0" mnemonicParsing="false" text="+" />
+               </children></AnchorPane>
       </content>
     </Tab>
+      <Tab fx:id="searchTab1" text="Shows">
+         <content>
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <Label layoutX="14.0" layoutY="14.0" text="Create Show:" />
+                  <TextField fx:id="showNameField" layoutX="10.0" layoutY="42.0" promptText="Show name" />
+                  <DatePicker layoutX="14.0" layoutY="96.0" />
+                  <Label layoutX="14.0" layoutY="67.0" text="on:" />
+               </children>
+            </AnchorPane>
+         </content>
+      </Tab>
   </tabs>
 </TabPane>

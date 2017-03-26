@@ -28,7 +28,7 @@ public class Testqueries{
     
 
     
-    public static void main(String args[]) throws ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException
+    /*public static void main(String args[]) throws ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException
     {
     	openConnection();       
     	System.out.println("1___________________________________________________________");
