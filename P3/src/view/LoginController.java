@@ -6,10 +6,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import model.DatabaseConnector;
-import model.NoResultException;
-import model.User;
-import model.UserExistsException;
+import model.*;
+import org.postgresql.util.PSQLException;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -54,6 +52,10 @@ public class LoginController implements Initializable{
             thisUsr = DatabaseConnector.getInstance().getUserByEmail(loginEmail);
             isValid = thisUsr.isPassword(givenPwd);
         }
+        catch(DatabaseConnectionException d)
+        {
+            loginFailLabel.setText("Error connecting to database. Check VPN");
+        }
         catch(NoResultException nre)
         {
             System.out.println("No result exception thrown");
@@ -62,7 +64,14 @@ public class LoginController implements Initializable{
 
         if(thisUsr != null & isValid)
         {
-            logIn(thisUsr.getEmail());
+            try {
+                logIn(thisUsr.getEmail());
+            }
+            catch (DatabaseConnectionException d)
+            {
+                loginFailLabel.setText("Error connecting to database");
+            }
+
             return;
         }
         else
@@ -72,7 +81,7 @@ public class LoginController implements Initializable{
         }
     }
 
-    private void logIn(String usrEmail)
+    private void logIn(String usrEmail) throws DatabaseConnectionException
     {
         Stage ourStage = (Stage) loginFailLabel.getScene().getWindow();
         DatabaseConnector.getInstance().setSessionUserID(usrEmail);
@@ -117,6 +126,10 @@ public class LoginController implements Initializable{
             catch(UserExistsException usre)
             {
                 createAcctFailLabel.setText("There is already a user with that email");
+            }
+            catch(DatabaseConnectionException d)
+            {
+                System.out.println("Error connecting to database");
             }
         }
         else{

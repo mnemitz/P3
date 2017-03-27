@@ -1,6 +1,7 @@
 package model;
 import org.postgresql.util.PSQLException;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.math.*;
 import java.util.*;
@@ -53,7 +54,7 @@ public class DatabaseConnector
 	}
 
 	// set the id of the user for this session
-	public void setSessionUserID(String usrID)
+	public void setSessionUserID(String usrID) throws DatabaseConnectionException
 	{
 		CurrentUserEmail = usrID;
 		openThisConnection();
@@ -76,11 +77,17 @@ public class DatabaseConnector
 	}
 	private DatabaseConnector()
 	{
-		openThisConnection();
+		try{
+			openThisConnection();
+		}
+		catch(DatabaseConnectionException d)
+		{
+			System.out.println("Error connecting to database");
+		}
 		closeThisConnection();
 	}
 
-	private static void openThisConnection()
+	private static void openThisConnection() throws DatabaseConnectionException
 	{
 		// Register the driver.
 			try {
@@ -90,7 +97,7 @@ public class DatabaseConnector
 				CONNECTION = DriverManager.getConnection(URL, dbUsr, dbUsrPwd);
 			} catch (SQLException e) {
 				closeThisConnection();
-				System.out.println("entered this catch block");
+				throw new DatabaseConnectionException("Could not connect to database");
 			}
 			System.out.println("connection opened!");
 	}
@@ -104,7 +111,7 @@ public class DatabaseConnector
 		}
 		System.out.println("connection closed");
 	}
-	public ArrayList<Band> getBandsBy(BandCol col, String searchKey) throws NoResultException
+	public ArrayList<Band> getBandsBy(BandCol col, String searchKey) throws NoResultException, DatabaseConnectionException
 	{
 		openThisConnection();
 		ArrayList<Band> bandsFound = new ArrayList<Band>();
@@ -152,7 +159,7 @@ public class DatabaseConnector
 		return bandsFound;
 	}
 
-	public User getUserByEmail(String email) throws NoResultException
+	public User getUserByEmail(String email) throws NoResultException, DatabaseConnectionException
 	{
 		User ret = null;
 		openThisConnection();
@@ -225,34 +232,135 @@ public class DatabaseConnector
 		return venuesFound;
 	}
 
-	public void addUser(User toAdd, String pwd) throws UserExistsException
+	public void addUser(User toAdd, String pwd) throws UserExistsException, DatabaseConnectionException
 	{
 		openThisConnection();
 		try{
 			Statement s = CONNECTION.createStatement();
 			s.executeQuery("INSERT INTO usr (email, name, password) VALUES('" + toAdd.getName() + "', '" + toAdd.getEmail() + "', '" + pwd + "');");
 		}
-		catch(SQLException e)
-		{
+		catch(SQLException e) {
 			closeThisConnection();
-			throw new UserExistsException("user already exists");
+			System.out.println(e.toString());
+			if (e.toString().contains("org.postgresql.util.PSQLException: ERROR: duplicate key value violates unique constraint \"usr_pkey\"")) {
+				throw new UserExistsException("user already exists");
+			}
 		}
 		closeThisConnection();
 	}
 
-	public void addBand(Band toAdd)
+	public void addBandForThisUsr(Band toAdd) throws DatabaseConnectionException, BandExistsException
 	{
 		openThisConnection();
-		//The following query will insert a new enrty into the band table, and also update the bmanages table
-		// TODO make query
-		try{
-			Statement s = CONNECTION.createStatement();
 
+		// First, check if this user already has a band by the given name
+		ResultSet checkRs;
+		try
+		{
+			Statement checkStatement = CONNECTION.createStatement();
+			checkRs = checkStatement.executeQuery(
+					"SELECT name FROM bmanages LEFT JOIN band " +
+							"ON (bmanages.bandid = band.bandid) " +
+							"WHERE bmanages.email = '" + CurrentUserEmail + "'" + " AND band.name = '" + toAdd.getName() + "';");
+			if(checkRs.next())
+			{
+				closeThisConnection();
+				throw new BandExistsException("Band by this name already exists");
+			}
 		}
 		catch(SQLException e)
 		{
-			e.printStackTrace();
 			closeThisConnection();
+			System.out.println("problem with check");
+			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
+			{
+				throw new DatabaseConnectionException("");
+			}
+		}
+
+		// From here we can just assume the band by that name does not exist
+
+		// this query inserts into the band table, and updates the manages table based on the current user
+		String query = "INSERT INTO band(city, genre, bio, weblink, name, email) VALUES" +
+				"('" + toAdd.city + "', '" + toAdd.genre + "', '" + toAdd.bio + "', '" + toAdd.weblink + "', '" + toAdd.name + "', '" + toAdd.email + "');" +
+				"INSERT INTO bmanages(email, bandid, sincedate) VALUES('" + CurrentUserEmail + "', " + "currval('band_bandid_seq'::regclass), now());";
+		try{
+			Statement s = CONNECTION.createStatement();
+			s.executeQuery(query);
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			e.printStackTrace();
+		//	System.out.println("problem with insertion");
+			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
+			{
+				throw new DatabaseConnectionException("");
+			}
+		}
+		closeThisConnection();
+	}
+
+	public ArrayList<Band> getCurrUsrBands() throws DatabaseConnectionException
+	{
+		openThisConnection();
+
+		closeThisConnection();
+		return null;
+	}
+
+	public void addVenueForThisUsr(Venue toAdd) throws DatabaseConnectionException, VenueExistsException
+	{
+		openThisConnection();
+
+		// First, check if this user already has a band by the given name
+		ResultSet checkRs;
+		try
+		{
+			Statement checkStatement = CONNECTION.createStatement();
+			checkRs = checkStatement.executeQuery(
+					"SELECT venuename FROM vmanages LEFT JOIN venue " +
+							"ON (vmanages.venueid = venue.venueid) " +
+							"WHERE vmanages.email = '" + CurrentUserEmail + "'" + " AND venue.venuename = '" + toAdd.name + "';");
+			if(checkRs.next())
+			{
+				closeThisConnection();
+				throw new VenueExistsException("Venue by this name already exists");
+			}
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			System.out.println("problem with check");
+
+			// below is just to ignore no-result errors, but propogate the others
+			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
+			{
+				throw new DatabaseConnectionException("");
+			}
+		}
+
+		// From here we can just assume the band by that name does not exist
+
+		// this query inserts into the band table, and updates the manages table based on the current user
+		String query = "INSERT INTO venue(city, type, description, weblink, venuename, email, address) VALUES" +
+				"('" + toAdd.city + "', '" + toAdd.type + "', '" + toAdd.description + "', '" + toAdd.weblink + "', '" + toAdd.name + "', '" + toAdd.email + "', '" + toAdd.address + "');" +
+				"INSERT INTO vmanages(email, venueid, sincedate) VALUES('" + CurrentUserEmail + "', " + "currval('venue_venueid_seq'::regclass), now());";
+		try{
+			Statement s = CONNECTION.createStatement();
+			s.executeQuery(query);
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			e.printStackTrace();
+			//	System.out.println("problem with insertion");
+
+			// below is just to ignore no-result errors, but propogate the others
+			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
+			{
+				throw new DatabaseConnectionException("");
+			}
 		}
 		closeThisConnection();
 	}

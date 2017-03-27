@@ -7,6 +7,7 @@
 <?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -42,25 +43,45 @@
                </children></AnchorPane>
       </content>
     </Tab>
-    <Tab fx:id="modifyTab" text="My Bands">
+    <Tab fx:id="myBandsTab" text="My Bands">
       <content>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                <children>
                   <Label layoutX="14.0" layoutY="14.0" text="Welcome," />
-                  <TreeView layoutX="14.0" layoutY="64.0" prefHeight="170.0" prefWidth="233.0" />
+                  <TreeView fx:id="myBandsView" layoutX="14.0" layoutY="64.0" prefHeight="170.0" prefWidth="233.0" />
                   <Label layoutX="15.0" layoutY="39.0" text="My Bands" />
                   <Label layoutX="300.0" layoutY="10.0" text="Add band:" />
-                  <TextField fx:id="addBandEmail" layoutX="300.0" layoutY="86.0" promptText="Email" />
-                  <TextField layoutX="300.0" layoutY="121.0" />
-                  <TextField layoutX="300.0" layoutY="156.0" />
-                  <TextField fx:id="addBandName" layoutX="300.0" layoutY="56.0" promptText="Name" />
+                  <TextField fx:id="addBandEmail" layoutX="281.0" layoutY="86.0" promptText="Email" />
+                  <TextField fx:id="addBandGenre" layoutX="281.0" layoutY="121.0" promptText="Genre" />
+                  <TextField fx:id="addBandCity" layoutX="281.0" layoutY="156.0" promptText="City Based" />
+                  <TextField fx:id="addBandName" layoutX="281.0" layoutY="56.0" promptText="Name" />
+                  <Button fx:id="addBandButton" layoutX="398.0" layoutY="222.0" mnemonicParsing="false" onAction="#addBand" text="Add band" />
+                  <TextArea fx:id="addBandBio" layoutX="432.0" layoutY="55.0" prefHeight="125.0" prefWidth="148.0" promptText="Short bio" />
+                  <TextField fx:id="addBandWeblink" layoutX="281.0" layoutY="186.0" promptText="Web link" />
+                  <Label fx:id="bandTabConsole" layoutX="384.0" layoutY="277.0" />
                </children></AnchorPane>
       </content>
     </Tab>
-      <Tab text="My Venues">
-        <content>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-        </content>
+      <Tab fx:id="modifyTab1" text="My Venues">
+         <content>
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <Label layoutX="14.0" layoutY="14.0" text="Welcome," />
+                  <TreeView layoutX="14.0" layoutY="64.0" prefHeight="170.0" prefWidth="233.0" />
+                  <Label layoutX="15.0" layoutY="39.0" text="My Venues" />
+                  <Label layoutX="300.0" layoutY="10.0" text="Add venue:" />
+                  <TextField fx:id="addVenueEmail" layoutX="256.0" layoutY="64.0" promptText="Email" />
+                  <TextField fx:id="addVenueType" layoutX="256.0" layoutY="96.0" promptText="Type" />
+                  <TextField fx:id="addVenueCity" layoutX="256.0" layoutY="173.0" promptText="City" />
+                  <TextField fx:id="addVenueName" layoutX="256.0" layoutY="35.0" promptText="Name" />
+                  <Button fx:id="addVenueButton" layoutX="405.0" layoutY="254.0" mnemonicParsing="false" onAction="#addVenue" text="Add Venue" />
+                  <TextField fx:id="addVenueAddress" layoutX="256.0" layoutY="135.0" promptText="Street Address" />
+                  <TextArea fx:id="addVenueDescription" layoutX="420.0" layoutY="36.0" prefHeight="199.0" prefWidth="147.0" promptText="Short description" />
+                  <TextField fx:id="addVenueWeblink" layoutX="256.0" layoutY="210.0" promptText="Web link" />
+                  <Label fx:id="venueTabConsole" layoutX="27.0" layoutY="246.0" textFill="#e41010" />
+               </children>
+            </AnchorPane>
+         </content>
       </Tab>
       <Tab fx:id="searchTab1" text="Shows">
          <content>
@@ -68,8 +89,14 @@
                <children>
                   <Label layoutX="14.0" layoutY="14.0" text="Create Show:" />
                   <TextField fx:id="showNameField" layoutX="10.0" layoutY="42.0" promptText="Show name" />
-                  <DatePicker layoutX="14.0" layoutY="96.0" />
-                  <Label layoutX="14.0" layoutY="67.0" text="on:" />
+                  <DatePicker layoutX="267.0" layoutY="42.0" />
+                  <Label layoutX="188.0" layoutY="46.0" text="on:" />
+                  <Label layoutX="14.0" layoutY="94.0" text="Featuring bands:" />
+                  <TextField layoutX="114.0" layoutY="90.0" promptText="(comma separated)" />
+                  <Label layoutX="286.0" layoutY="94.0" text="at" />
+                  <TextField layoutX="328.0" layoutY="90.0" promptText="venue name" />
+                  <TreeView layoutX="14.0" layoutY="185.0" prefHeight="172.0" prefWidth="200.0" />
+                  <Label layoutX="14.0" layoutY="155.0" text="Shows requiring action:" />
                </children>
             </AnchorPane>
          </content>

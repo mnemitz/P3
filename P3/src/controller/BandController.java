@@ -1,6 +1,7 @@
 package controller;
 
 import model.Band;
+import model.DatabaseConnectionException;
 import model.DatabaseConnector;
 import model.NoResultException;
 
@@ -33,23 +34,35 @@ public class BandController {
     }
 
     public Band getBand(Integer id) {
+        Band b = null;
         try {
-            return DatabaseConnector.getInstance().getBandsBy(B_ID, id.toString()).get(0);
+            b = DatabaseConnector.getInstance().getBandsBy(B_ID, id.toString()).get(0);
         }
         catch(NoResultException nre)
         {
             System.out.println("No band by this ID");
             return null;
         }
+        catch(DatabaseConnectionException d)
+        {
+            System.out.println("Error connecting to database");
+        }
+        return b;
     }
 
     public List<Band> searchBandsByName(String query) {
+        List<Band> bands = null;
         try {
-            return DatabaseConnector.getInstance().getBandsBy(B_NAME, query);
+            bands = DatabaseConnector.getInstance().getBandsBy(B_NAME, query);
         } catch (NoResultException e) {
             e.printStackTrace();
             return null;
         }
+        catch(DatabaseConnectionException d)
+        {
+            System.out.println("Error connecting to database");
+        }
+        return bands;
     }
 
    /* public List<Band> searchBandsByDate(String query) {
@@ -59,12 +72,18 @@ public class BandController {
 */
     public List<Band> searchBandsByCity(String query) {
         // returns a list of bands that correspond to the query based on their cities
+       List<Band> bands = null;
         try {
             return DatabaseConnector.getInstance().getBandsBy(B_CITY, query);
         } catch (NoResultException e) {
             e.printStackTrace();
             return null;
         }
+        catch(DatabaseConnectionException d)
+        {
+            System.out.println("Error connecting to database");
+        }
+        return bands;
     }
 
 }
