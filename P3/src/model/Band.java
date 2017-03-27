@@ -3,7 +3,7 @@ package model;
 
 public class Band 
 {
-	public Integer id;
+	public int id;
 	public String name;
 	public String city;
 	public String genre;

@@ -291,7 +291,7 @@ public class DatabaseConnector
 		catch(SQLException e)
 		{
 			closeThisConnection();
-			e.printStackTrace();
+		//	e.printStackTrace();
 		//	System.out.println("problem with insertion");
 			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
 			{
@@ -301,12 +301,43 @@ public class DatabaseConnector
 		closeThisConnection();
 	}
 
-	public ArrayList<Band> getCurrUsrBands() throws DatabaseConnectionException
+	public ArrayList<Band> getCurrUsrBands() throws DatabaseConnectionException, NoResultException
 	{
+		ArrayList<Band> ret = null;
 		openThisConnection();
-
+		try{
+			Statement s = CONNECTION.createStatement();
+			ResultSet rs = s.executeQuery("SELECT band.* FROM bmanages LEFT JOIN band ON (bmanages.bandid = band.bandid) WHERE bmanages.email = '"
+					+ CurrentUserEmail + "';" );
+			while(rs.next())
+			{
+				if(ret == null)
+				{
+					ret = new ArrayList<>();
+				}
+				Band curr = new Band(
+						rs.getInt("bandid"),
+						rs.getString("name"),
+						rs.getString("city"),
+						rs.getString("genre"),
+						rs.getString("bio"),
+						rs.getString("weblink"),
+						rs.getString("email")
+				);
+				ret.add(curr);
+			}
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			throw new DatabaseConnectionException("");
+		}
 		closeThisConnection();
-		return null;
+		if(ret == null)
+		{
+			throw new NoResultException("");
+		}
+		return ret;
 	}
 
 	public void addVenueForThisUsr(Venue toAdd) throws DatabaseConnectionException, VenueExistsException

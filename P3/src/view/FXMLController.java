@@ -139,14 +139,6 @@ public class FXMLController implements Initializable {
     Tab myBandsTab;
 
     @FXML
-    TreeView<String> myBandsView;
-
-    public void getMyBands()
-    {
-        TreeItem<String> myBandsRoot = new TreeItem<String>("My Bands");
-    }
-
-    @FXML
     private TextField addBandName;
 
     @FXML
@@ -208,7 +200,50 @@ public class FXMLController implements Initializable {
 
     }
 
-    // TODO public void showMyBands(){}
+    @FXML
+    TreeView<String> myBandsView;
+
+    public void showMyBands()
+    {
+        ArrayList<TreeItem<String>> bandsToDisplay = new ArrayList<>();
+        ArrayList<Band> bandsFromDB;
+        try
+        {
+            bandsFromDB = DatabaseConnector.getInstance().getCurrUsrBands();
+            for(Band b : bandsFromDB)
+            {
+                TreeItem<String> currBandItem = new TreeItem<>(b.name);
+                currBandItem.getChildren().add(new TreeItem<>("City:\t" + b.city));
+                currBandItem.getChildren().add(new TreeItem<>("Email:\t" + b.city));
+                currBandItem.getChildren().add(new TreeItem<>("Genre:\t" + b.city));
+                currBandItem.getChildren().add(new TreeItem<>("Weblink:\t" + b.city));
+                currBandItem.getChildren().add(new TreeItem<>("City:\t" + b.city));
+                TreeItem<String> bioItem = new TreeItem<>("Bio");
+                bioItem.setExpanded(false);
+                bioItem.getChildren().add(new TreeItem<>(b.bio));
+                currBandItem.setExpanded(false);
+                bandsToDisplay.add(currBandItem);
+            }
+        }
+        catch(DatabaseConnectionException d)
+        {
+            System.out.println("database connection exception");
+            return;
+        }
+        catch(NoResultException n)
+        {
+            System.out.println("no result");
+            return;
+        }
+
+        TreeItem<String> root = new TreeItem<>("My Bands");
+        for(TreeItem<String> item : bandsToDisplay)
+        {
+            root.getChildren().add(item);
+        }
+        root.setExpanded(true);
+        myBandsView.setRoot(root);
+    }
 
     @FXML
     private TextField addVenueName;
