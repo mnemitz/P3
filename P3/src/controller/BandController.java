@@ -53,7 +53,7 @@ public class BandController {
     public List<Band> searchBandsByName(String query) {
         List<Band> bands = null;
         try {
-            bands = DatabaseConnector.getInstance().getBandsBy(B_NAME, query);
+            bands = DatabaseConnector.getInstance().getBandsBy(B_NAME_LIKE, query);
         } catch (NoResultException e) {
             e.printStackTrace();
             return null;

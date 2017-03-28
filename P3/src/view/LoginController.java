@@ -84,16 +84,22 @@ public class LoginController implements Initializable{
     private void logIn(String usrEmail) throws DatabaseConnectionException
     {
         Stage ourStage = (Stage) loginFailLabel.getScene().getWindow();
-        DatabaseConnector.getInstance().setSessionUserID(usrEmail);
+
         try {
+            DatabaseConnector.getInstance().setSessionUserID(usrEmail);
             TabPane mainTabPane = (TabPane) FXMLLoader.load(Main.class.getResource("CHMainView.fxml"));
             Scene mainScene = new Scene(mainTabPane);
             ourStage.setScene(mainScene);
             ourStage.setTitle("Concert Hog Prototype");
             ourStage.show();
-        } catch (Exception e) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
-            System.exit(1);
+        } catch(DatabaseConnectionException d)
+        {
+            loginFailLabel.setText("Error connecting to database (check VPN connection)");
+            return;
+        }
+        catch(Exception e)
+        {
+            loginFailLabel.setText("Problem rendering main screen");
         }
     }
 

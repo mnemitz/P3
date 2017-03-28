@@ -1,5 +1,6 @@
 package controller;
 
+import model.DatabaseConnector;
 import model.Show;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class ShowController {
     }
 
     public void createShow(String name, String city, String date, String time, String weblink) {
-        //TODO create a show and add it to the database
+
     }
 
     public void deleteShow(int id) {

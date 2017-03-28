@@ -18,7 +18,8 @@ public class DatabaseConnector
 	public enum BandCol
 	{
 		B_ID,
-		B_NAME,
+		B_NAME_EQ,
+		B_NAME_LIKE,
 		B_EMAIL,
 		B_CITY,
 		B_GENRE,
@@ -29,7 +30,8 @@ public class DatabaseConnector
 	public enum VenueCol
 	{
 		V_ID,
-		V_NAME,
+		V_NAME_EQ,
+		V_NAME_LIKE,
 		V_EMAIL,
 		V_CITY,
 		V_TYPE,
@@ -45,7 +47,7 @@ public class DatabaseConnector
 
 
 
-	public static DatabaseConnector getInstance()
+	public static DatabaseConnector getInstance() throws DatabaseConnectionException
 	{
 		if(instance == null) {
 			instance = new DatabaseConnector();
@@ -75,15 +77,9 @@ public class DatabaseConnector
 	{
 		return CurrentUserName;
 	}
-	private DatabaseConnector()
+	private DatabaseConnector() throws DatabaseConnectionException
 	{
-		try{
-			openThisConnection();
-		}
-		catch(DatabaseConnectionException d)
-		{
-			System.out.println("Error connecting to database");
-		}
+		openThisConnection();
 		closeThisConnection();
 	}
 
@@ -119,7 +115,8 @@ public class DatabaseConnector
 		switch(col)
 		{
 			case B_ID: 		query = "SELECT * FROM band WHERE ID = " + searchKey + ";"; break;
-			case B_NAME: 	query = "SELECT * FROM band WHERE name LIKE "+ "'%" + searchKey + "%';";	break;
+			case B_NAME_EQ: 	query = "SELECT * FROM band WHERE name ='" + searchKey + "';";	break;
+			case B_NAME_LIKE: 	query = "SELECT * FROM band WHERE name LIKE "+ "'%" + searchKey + "%';";	break;
 			case B_EMAIL:	query = "SELECT * FROM band WHERE email = " + searchKey; break;
 			case B_CITY:	query = "SELECT * FROM band WHERE city = " + "'" + searchKey + "';"; break;
 			case B_GENRE:	query = "SELECT * FROM band WHERE genre LIKE " + "'" + searchKey + "';"; break;
@@ -190,14 +187,16 @@ public class DatabaseConnector
 		}
 	}
 
-	public ArrayList<Venue> getVenuesBy(VenueCol col, String searchKey)
+	public ArrayList<Venue> getVenuesBy(VenueCol col, String searchKey) throws DatabaseConnectionException, NoResultException
 	{
+		openThisConnection();
 		ArrayList<Venue> venuesFound = new ArrayList<Venue>();
 		String query = null;
 		switch(col)
 		{
 			case V_ID: 		query = "SELECT * FROM venue WHERE ID = " + searchKey; break;
-			case V_NAME: 	query = "SELECT * FROM venue WHERE name LIKE " + searchKey; break;
+			case V_NAME_EQ: 	query = "SELECT * FROM venue WHERE venuename = '" + searchKey + "';"; break;
+			case V_NAME_LIKE: 	query = "SELECT * FROM venue WHERE venuename LIKE '%" + searchKey + "%';"; break;
 			case V_EMAIL:	query = "SELECT * FROM venue WHERE email = " + searchKey; break;
 			case V_CITY:	query = "SELECT * FROM venue WHERE city = " + searchKey; break;
 			case V_TYPE:	query = "SELECT * FROM venue WHERE type LIKE " + searchKey; break;
@@ -205,8 +204,9 @@ public class DatabaseConnector
 		}
 		if (query == null)
 		{
-			return null;
+			throw new NoResultException("");
 		}
+		System.out.println("Now executing:\t" + query);
 		ResultSet rs;
 		try {
 			Statement s = CONNECTION.createStatement();
@@ -214,7 +214,7 @@ public class DatabaseConnector
 			while(rs.next())
 			{
 				int curr_venueID = rs.getInt("venueid");
-				String curr_name = rs.getString("name");
+				String curr_name = rs.getString("venuename");
 				String curr_city = rs.getString("city");
 				String curr_weblink = rs.getString("weblink");
 				String curr_email = rs.getString("email");
@@ -228,7 +228,11 @@ public class DatabaseConnector
 			}
 		}
 		catch(SQLException e){closeThisConnection(); e.printStackTrace();}
-
+		if(venuesFound.size() == 0)
+		{
+			System.out.println("No venue found");
+			throw new NoResultException("");
+		}
 		return venuesFound;
 	}
 
@@ -284,6 +288,7 @@ public class DatabaseConnector
 		String query = "INSERT INTO band(city, genre, bio, weblink, name, email) VALUES" +
 				"('" + toAdd.city + "', '" + toAdd.genre + "', '" + toAdd.bio + "', '" + toAdd.weblink + "', '" + toAdd.name + "', '" + toAdd.email + "');" +
 				"INSERT INTO bmanages(email, bandid, sincedate) VALUES('" + CurrentUserEmail + "', " + "currval('band_bandid_seq'::regclass), now());";
+		System.out.println("About to execute: " + query);
 		try{
 			Statement s = CONNECTION.createStatement();
 			s.executeQuery(query);
@@ -291,7 +296,7 @@ public class DatabaseConnector
 		catch(SQLException e)
 		{
 			closeThisConnection();
-		//	e.printStackTrace();
+			e.printStackTrace();
 		//	System.out.println("problem with insertion");
 			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
 			{
@@ -323,6 +328,46 @@ public class DatabaseConnector
 						rs.getString("bio"),
 						rs.getString("weblink"),
 						rs.getString("email")
+				);
+				ret.add(curr);
+			}
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			throw new DatabaseConnectionException("");
+		}
+		closeThisConnection();
+		if(ret == null)
+		{
+			throw new NoResultException("");
+		}
+		return ret;
+	}
+
+	public ArrayList<Venue> getCurrUsrVenues() throws DatabaseConnectionException, NoResultException
+	{
+		ArrayList<Venue> ret = null;
+		openThisConnection();
+		try{
+			Statement s = CONNECTION.createStatement();
+			ResultSet rs = s.executeQuery("SELECT venue.* FROM vmanages LEFT JOIN venue ON (vmanages.venueid = venue.venueid) WHERE vmanages.email = '"
+					+ CurrentUserEmail + "';" );
+			while(rs.next())
+			{
+				if(ret == null)
+				{
+					ret = new ArrayList<>();
+				}
+				Venue curr = new Venue(
+						rs.getInt("venueid"),
+						rs.getString("venuename"),
+						rs.getString("city"),
+						rs.getString("type"),
+						rs.getString("description"),
+						rs.getString("weblink"),
+						rs.getString("email"),
+						rs.getString("address")
 				);
 				ret.add(curr);
 			}
@@ -394,5 +439,81 @@ public class DatabaseConnector
 			}
 		}
 		closeThisConnection();
+	}
+
+
+	public void createShow(Show toAdd) throws DatabaseConnectionException, NoResultException, ShowExistsException
+	{
+		openThisConnection();
+		try{
+			Statement vid = CONNECTION.createStatement();
+			ResultSet vidResult = vid.executeQuery("SELECT venueid FROM venue WHERE venuename = '" + toAdd.venueName + "';");
+			Integer venueID;
+			if(vidResult.next())
+			{
+				venueID = (Integer) vidResult.getInt("venueid");
+			}
+			else{
+				closeThisConnection();
+				throw new NoResultException("");
+			}
+			closeThisConnection();
+			for(String bandname : toAdd.bands){
+				Band currBand = getBandsBy(BandCol.B_NAME_EQ, bandname).get(0);
+				toAdd.addBandID(currBand.id);
+			}
+			// Now all the needed information is ready
+			openThisConnection();
+			Statement ins = CONNECTION.createStatement();
+			ins.executeQuery(toAdd.insertionQuery(venueID));
+		}
+		catch(SQLException e){
+			closeThisConnection();
+
+			if(!e.toString().contains("org.postgresql.util.PSQLException: No results were returned by the query."))
+			{
+				e.printStackTrace();
+				throw new DatabaseConnectionException("");
+			}
+		}
+		closeThisConnection();
+	}
+
+	public ArrayList<Show> searchShows(String bandName, String venueName) throws DatabaseConnectionException, NoResultException
+	{
+		ArrayList<Show> ret = new ArrayList<>();
+		openThisConnection();
+		try{
+			Statement showsearch = CONNECTION.createStatement();
+			ResultSet results = showsearch.executeQuery(
+					"SELECT show.* , band.name, venue.venuename " +
+							"FROM (show LEFT JOIN (hosts LEFT JOIN venue ON hosts.venueid = venue.venueid) ON show.showid = hosts.showid) LEFT JOIN " +
+								"(plays LEFT JOIN band ON plays.bandid = band.bandid) " +
+							"ON show.showid = plays.showid WHERE band.name LIKE '%" + bandName + "%' AND venue.venuename LIKE '%" + venueName + "%';");
+			while(results.next())
+			{
+				ret.add(new Show(
+						results.getInt("showid"),
+						results.getString("showname"),
+						results.getString("showdate"),
+						results.getString("showtime"),
+						results.getString("venuename"),
+						results.getBoolean("public")
+				));
+			}
+		}
+		catch(SQLException e)
+		{
+			closeThisConnection();
+			e.printStackTrace();
+			throw new DatabaseConnectionException("");
+		}
+		if(ret.size() == 0)
+		{
+			closeThisConnection();
+			throw new NoResultException("");
+		}
+		closeThisConnection();
+		return ret;
 	}
 }

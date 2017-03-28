@@ -1,67 +1,61 @@
 package model;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
-public class Show 
+
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+
+public class Show
 {
-	static Integer id;
-	static String name;
-	static String city;
-	static String date;
-	static String time;
-	static String weblink;
-//	static String bookeremail;
+	public int id;
+	public String name;
+	public String date;
+	public String time;
+	public String venueName;
+	public String[] bands;
+	public ArrayList<Integer> bandIDs;
+	public boolean isPublic;
 
-	// add weblink and email to show attributes?
-	public void setShow(int x) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
-	//	System.out.println("... fetching show ...");
-		try {
-    //		System.out.println("Registering Driver");
-            DriverManager.registerDriver ( new org.postgresql.Driver() ) ;
-    //        System.out.println("Successful Registration");
-        } 
-            catch (Exception cnfe){
-            System.out.println("Class not found");
-            }
-		Connection conn = DriverManager.getConnection("jdbc:postgresql://comp421.cs.mcgill.ca:5432/cs421","cs421g36", "LookVibrant");
-		
-		id = x;
-		Statement stmnt = conn.createStatement();
-		ResultSet showattributes = stmnt.executeQuery("SELECT * FROM Show WHERE showid = " + id);
-		showattributes.next();
-		name = showattributes.getString("showname");
-		city = showattributes.getString("city");
-		date = showattributes.getString("showdate");
-		time = showattributes.getString("showtime");
-		// HOW TO INVOLVE TOUR ID?
-		weblink = showattributes.getString("weblink"); 
-		// bookeremail = ... new query with user accounting for nulls
-		
-		conn.close();
+
+	public Show(int id, String name, String date, String time, String venueName, boolean isPublic)
+	{
+		// constructor for retrievals
+		this.id = id;
+		this.name = name;
+		this.date = date;
+		this.time = time;
+		this.venueName = venueName;
+		this.isPublic = isPublic;
+
 	}
-	public Integer getId() {
-		return id;
+
+	public Show(String name, String date, String time, String venueName, boolean isPublic, String[] bands)
+	{
+		this.id = -1; // for insertions
+		this.name = name;
+		this.date = date;
+		this.time = time;
+		this.venueName = venueName;
+		this.isPublic = isPublic;
+		this.bands = bands;
+		this.bandIDs = new ArrayList<>();
 	}
-	public String getName() {
-		return name;
+
+	public String insertionQuery(Integer venueId)
+	{
+		String ret = "INSERT INTO show(public, showname, showdate, showtime) VALUES('" +
+				((Boolean)isPublic).toString() + "', '" + name + "', '" + date + "', '" + time + "');" +
+				"INSERT INTO hosts(venueid, showid) VALUES(" + venueId.toString() + ", currval('show_showid_seq'::regclass));";
+				for(Integer bandid : bandIDs)
+				{
+					ret += "INSERT INTO plays(showid, bandid) VALUES(currval('show_showid_seq'::regclass), " + bandid.toString() + ");";
+				}
+		return ret;
 	}
-	public String getCity() {
-		return city;
+
+	public void addBandID(Integer pID)
+	{
+		bandIDs.add(pID);
 	}
-	public String getDate() {
-		return date;
-	}
-	public String getTime() {
-		return time;
-	}
-	public String getWeblink() {
-		return weblink;
-	}
-//	public String getEmail() {
-//		return email;
-//	}
 }
